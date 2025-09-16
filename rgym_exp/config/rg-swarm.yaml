@@ -21,9 +21,9 @@ training:
 
 blockchain:
   alchemy_url: "https://gensyn-testnet.g.alchemy.com/public"
-  swarm_contract_address: ${oc.env:SWARM_CONTRACT,null} # This is set by modal-login in run_rl_swarm.sh
-  org_id: ${oc.env:ORG_ID,null} # This is set by modal-login in run_rl_swarm.sh
-  mainnet_chain_id: 685685 # currently unused, will be used with WalletSwarmCoordinator
+  swarm_contract_address: ${oc.env:SWARM_CONTRACT,null}
+  org_id: ${oc.env:ORG_ID,null}
+  mainnet_chain_id: 685685
   modal_proxy_url: "http://localhost:3000/api/"
   swarm_coordinator_abi_path: "rgym_exp/contracts/SwarmCoordinator_0.4.2.json"
 
@@ -51,6 +51,12 @@ game_manager:
   run_mode: "train_and_evaluate"
   bootnodes: ${communications.initial_peers}
   prg_game_config: ${prg_game_config}
+  enable_crash_protection: true
+  enable_dht_auto_restart: true
+  memory_threshold_mb: 15000
+  restart_interval_minutes: 60
+  max_auto_restarts: 650
+  health_check_interval: 60
   game_state: 
     _target_: genrl.state.game_state.GameState
     round: 0
@@ -69,20 +75,22 @@ game_manager:
     _target_: rgym_exp.src.trainer.GRPOTrainerModule
     models:
       - _target_: transformers.AutoModelForCausalLM.from_pretrained
-        pretrained_model_name_or_path: ${oc.env:MODEL_NAME, ${gpu_model_choice:${default_large_model_pool},${default_small_model_pool}}} 
+        pretrained_model_name_or_path: ${oc.env:MODEL_NAME,Gensyn/Qwen2.5-0.5B-Instruct}
     config:
       _target_: genrl.trainer.grpo_trainer.GRPOTrainerConfig
       dtype: ${training.dtype}
       epsilon: 0.2
       epsilon_high: 0.28
       num_generations: ${training.num_generations}
+      enable_gradient_checkpointing: true
+      max_new_tokens: 128
     log_with: wandb
     log_dir: ${log_dir}
     judge_base_url: ${eval.judge_base_url}
   data_manager:
     _target_: rgym_exp.src.data.ReasoningGymDataManager
     yaml_config_path: "rgym_exp/src/datasets.yaml"
-    num_train_samples: 2
+    num_train_samples: 1
     num_evaluation_samples: 0
     num_generations: ${training.num_generations}
     system_prompt_id: 'default'
@@ -93,7 +101,19 @@ game_manager:
     initial_peers: ${communications.initial_peers}
     identity_path: ${oc.env:IDENTITY_PATH,null}
     startup_timeout: 120
-    beam_size: 50
+    dht_timeout_minutes: 0
+    beam_size: 15
+    world_size: 1
+    disable_caching: true
+    cache_locally: false
+    cache_on_store: false
+    auto_restart_enabled: false
+    memory_threshold_mb: 15000
+    restart_interval_minutes: 60
+    max_auto_restarts: 650
+    enable_robust_mode: false
+    health_check_interval: 60
+    max_pipe_errors: 5
   coordinator:
     _target_: rgym_exp.src.coordinator.ModalSwarmCoordinator
     web3_url: ${blockchain.alchemy_url}
@@ -103,9 +123,8 @@ game_manager:
     swarm_coordinator_abi_json: ${blockchain.swarm_coordinator_abi_path}
 
 default_large_model_pool: 
-  - nvidia/AceInstruct-1.5B
-  - dnotitia/Smoothie-Qwen3-1.7B
-  - Gensyn/Qwen2.5-1.5B-Instruct
+  - unsloth/Phi-4-mini-reasoning-unsloth-bnb-4bit
+  - unsloth/Qwen2.5-3B-Instruct-bnb-4bit
 
 default_small_model_pool:
   - Gensyn/Qwen2.5-0.5B-Instruct
