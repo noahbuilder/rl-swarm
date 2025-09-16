@@ -17,7 +17,7 @@ training:
   num_generations: 2
   num_transplant_trees: 2
   seed: 42
-  dtype: 'float32'
+  dtype: 'float16'
 
 blockchain:
   alchemy_url: "https://gensyn-testnet.g.alchemy.com/public"
@@ -75,14 +75,14 @@ game_manager:
     _target_: rgym_exp.src.trainer.GRPOTrainerModule
     models:
       - _target_: transformers.AutoModelForCausalLM.from_pretrained
-        pretrained_model_name_or_path: ${oc.env:MODEL_NAME,Gensyn/Qwen2.5-0.5B-Instruct}
+        pretrained_model_name_or_path: ${oc.env:MODEL_NAME,Qwen/Qwen3-0.6B}
     config:
       _target_: genrl.trainer.grpo_trainer.GRPOTrainerConfig
       dtype: ${training.dtype}
       epsilon: 0.2
       epsilon_high: 0.28
       num_generations: ${training.num_generations}
-      enable_gradient_checkpointing: true
+      enable_gradient_checkpointing: false
       max_new_tokens: 128
     log_with: wandb
     log_dir: ${log_dir}
@@ -90,7 +90,7 @@ game_manager:
   data_manager:
     _target_: rgym_exp.src.data.ReasoningGymDataManager
     yaml_config_path: "rgym_exp/src/datasets.yaml"
-    num_train_samples: 1
+    num_train_samples: 2
     num_evaluation_samples: 0
     num_generations: ${training.num_generations}
     system_prompt_id: 'default'
