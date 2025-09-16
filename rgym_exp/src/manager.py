@@ -359,6 +359,7 @@ class CrashSafeSwarmGameManager(BaseGameManager, DefaultGameManagerMixin):
                     get_logger().info(f"{Fore.YELLOW}👑 [BLOCKCHAIN] Round winner: {winner_name} ({max_signal} points){Style.RESET_ALL}")
                 else:
                     max_agent, max_signal = self.peer_id, points
+                    winner_name = self.animal_name
                 
                 self.coordinator.submit_winners(self.state.round, [max_agent], self.peer_id)
 
@@ -540,7 +541,10 @@ class CrashSafeSwarmGameManager(BaseGameManager, DefaultGameManagerMixin):
 
             # Check if we can advance to next round
             if round_num >= self.state.round:
-                get_logger().info(f"{Fore.GREEN}🚀 [ROUND ADVANCE] Joining round {round_num}{Style.RESET_ALL}")
+                get_logger().info(
+                    f"{Fore.GREEN}🐝 [JOINING] Joining round: {round_num} | "
+                    f"Model: {self.model_display_name}{Style.RESET_ALL}"
+                )
                 check_backoff = check_interval  # Reset backoff
                 self.state.round = round_num
                 return
