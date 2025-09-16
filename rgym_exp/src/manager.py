@@ -362,7 +362,7 @@ class CrashSafeSwarmGameManager(BaseGameManager, DefaultGameManagerMixin):
                 
                 self.coordinator.submit_winners(self.state.round, [max_agent], self.peer_id)
 
-                 get_logger().info(
+                get_logger().info(
                     f"{Fore.GREEN}✅ [SUBMIT SUCCESS] 🎉 POINTS SUBMITTED! 🎉\n"
                     f"   💰 Points Sent: {int(self.batched_signals)}\n"
                     f"   🏆 Round Winner: {winner_name} ({max_signal} pts)\n"
