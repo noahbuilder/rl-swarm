@@ -361,13 +361,18 @@ class CrashSafeSwarmGameManager(BaseGameManager, DefaultGameManagerMixin):
                     max_agent, max_signal = self.peer_id, points
                 
                 self.coordinator.submit_winners(self.state.round, [max_agent], self.peer_id)
-                
+
+                 get_logger().info(
+                    f"{Fore.GREEN}✅ [SUBMIT SUCCESS] 🎉 POINTS SUBMITTED! 🎉\n"
+                    f"   💰 Points Sent: {int(self.batched_signals)}\n"
+                    f"   🏆 Round Winner: {winner_name} ({max_signal} pts)\n"
+                    f"   🕐 Next Submit: {self.submit_period} hours\n"
+                    f"   🐾 Agent: {self.animal_name}{Style.RESET_ALL}"
+                )
                 # Reset counters
                 self.batched_signals = 0.0
                 self.time_since_submit = time.time()
                 self.submitted_this_round = True
-                
-                get_logger().info(f"{Fore.GREEN}✅ [BLOCKCHAIN] Submission successful{Style.RESET_ALL}")
                 
             except Exception as e:
                 get_logger().error(f"{Fore.RED}❌ [BLOCKCHAIN] Submission failed: {e}{Style.RESET_ALL}")
@@ -379,8 +384,11 @@ class CrashSafeSwarmGameManager(BaseGameManager, DefaultGameManagerMixin):
             if not hasattr(self, '_last_waiting_log'):
                 self._last_waiting_log = 0
             
-            if time.time() - self._last_waiting_log > 1200:  # 30 minutes
-                get_logger().info(f"{Fore.WHITE}⏳ [BLOCKCHAIN] Next submit in {remaining_minutes:.0f} minutes{Style.RESET_ALL}")
+            if time.time() - self._last_waiting_log > 900:  # 20 minutes
+                get_logger().info(
+                    f"{Fore.YELLOW}⏳ [BLOCKCHAIN] Next submit in: {remaining_minutes:.0f} minutes | "
+                    f"Current points: {int(self.batched_signals)} | Agent: {self.animal_name}{Style.RESET_ALL}"
+                )
                 self._last_waiting_log = time.time()
 
     def _hook_after_rewards_updated(self):
@@ -396,8 +404,10 @@ class CrashSafeSwarmGameManager(BaseGameManager, DefaultGameManagerMixin):
         # Log reward updates with clean format
         reward_gained = self.batched_signals - old_signals
         if reward_gained > 0:
-            get_logger().info(f"{Fore.GREEN}💎 [REWARDS] Gained +{reward_gained:.1f} points (Total: {int(self.batched_signals)}){Style.RESET_ALL}")
-        
+            get_logger().info(
+                f"{Fore.GREEN}💰 [REWARD GAINED] +{reward_gained:.1f} points | "
+                f"Total: {int(self.batched_signals)}{Style.RESET_ALL}"
+            )
         # Submit to blockchain
         self._safe_blockchain_submit(signal_by_agent)
         
