@@ -75,7 +75,7 @@ game_manager:
     _target_: rgym_exp.src.trainer.GRPOTrainerModule
     models:
       - _target_: transformers.AutoModelForCausalLM.from_pretrained
-        pretrained_model_name_or_path: ${oc.env:MODEL_NAME,Qwen/Qwen3-0.6B}
+        pretrained_model_name_or_path: ${oc.env:MODEL_NAME,Gensyn/Qwen2.5-0.5B-Instruct}
     config:
       _target_: genrl.trainer.grpo_trainer.GRPOTrainerConfig
       dtype: ${training.dtype}
